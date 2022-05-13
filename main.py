@@ -140,29 +140,35 @@ def get_market_close(tg_date):
 
         print(f"bonds\n", file=f)
 
-        print(
-            tabulate(
-                pd.DataFrame(df_assets["bonds"]["Close"]),
-                headers=["Years/spreads", "Close"],
-                tablefmt="grid",
-                floatfmt=".2f",
-            ),
-            file=f,
-        )
-
-        for a in ["indices", "commodities"]:
-            print(f"\n{a}\n", file=f)
-
+        try:
             print(
                 tabulate(
-                    pd.DataFrame(df_assets[a]["Close"]),
-                    headers=["Commodity    " if a ==
-                             "commodities" else "Index", "Close"],
+                    pd.DataFrame(df_assets["bonds"]["Close"]),
+                    headers=["Years/spreads", "Close"],
                     tablefmt="grid",
                     floatfmt=".2f",
                 ),
                 file=f,
             )
+        except:
+            pass
+
+        for a in ["indices", "commodities"]:
+            print(f"\n{a}\n", file=f)
+
+            try:
+                print(
+                    tabulate(
+                        pd.DataFrame(df_assets[a]["Close"]),
+                        headers=["Commodity    " if a ==
+                                "commodities" else "Index", "Close"],
+                        tablefmt="grid",
+                        floatfmt=".2f",
+                    ),
+                    file=f,
+                )
+            except:
+                pass
 
     # Make summary dataframe for xlsx export
 
