@@ -133,6 +133,12 @@ def get_market_close(tg_date):
         df_assets["bonds"].loc["us5y", "Close"]
     )
 
+    # +++++++++++ Test +++++++++++
+    for a in tickers.keys():
+        print(df_assets[a])
+    
+    print("Bonds df shape: ", df_assets["bonds"].shape)
+    
     # Print results to txt file
 
     with open("./data/market_close.txt", "w") as f:
@@ -140,7 +146,7 @@ def get_market_close(tg_date):
 
         print(f"bonds\n", file=f)
 
-        try:
+        if df_assets["bonds"].shape[0]>0:
             print(
                 tabulate(
                     pd.DataFrame(df_assets["bonds"]["Close"]),
@@ -150,13 +156,15 @@ def get_market_close(tg_date):
                 ),
                 file=f,
             )
-        except:
-            pass
+            
+        # +++++++++++ Test +++++++++++
+        print("Indices df shape: ", df_assets["indices"].shape)
+        print("Commodities df shape: ", df_assets["commodities"].shape)
 
         for a in ["indices", "commodities"]:
             print(f"\n{a}\n", file=f)
 
-            try:
+            if df_assets[a].shape[0]>0:
                 print(
                     tabulate(
                         pd.DataFrame(df_assets[a]["Close"]),
@@ -167,21 +175,23 @@ def get_market_close(tg_date):
                     ),
                     file=f,
                 )
-            except:
-                pass
 
     # Make summary dataframe for xlsx export
 
+    non_empty =[]
+    # for a in tickers.keys():
+    [non_empty.append(df_assets[ac]) for ac in tickers.keys() if (not df_assets[ac].empty)]
     df_final = pd.DataFrame(
         pd.concat(
-            [
-                df_assets["bonds"]["Close"],
-                df_assets["indices"]["Close"],
-                df_assets["commodities"]["Close"],
-            ],
+        #     [
+        #         df_assets["bonds"]["Close"],
+        #         df_assets["indices"]["Close"],
+        #         df_assets["commodities"]["Close"],
+        #     ],
+            non_empty,
             axis=0,
             sort=False,
-        )
+            )
     )
 
     df_final.reset_index(inplace=True)
@@ -193,6 +203,10 @@ def get_market_close(tg_date):
 
     df_final["Group"] = pd.Series(groups)
     df_final.set_index(["Group", "Name"], inplace=True)
+
+
+    # +++++++++++ Test +++++++++++
+    print(df_final)
 
     # Write results to xlsx file
 

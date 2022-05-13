@@ -3,16 +3,16 @@
 #  credentials.py
 #  Project: "market"
 #
-#  Created by Gennady Matveev on 24-05-2021.
-#  Last modified on: 29-06-2021.
-#  Copyright 2021. All rights reserved.
+#  Created by Gennady Matveev on 12-05-2022.
+#  Last modified on: 13-05-2022.
+#  Copyright 2022. All rights reserved.
 #
 #  gm@og.ly
 
 # emails
 login = {
     'email': 'kazna@og.ly',
-    'password': 'kazna171717'
+    'password': 'kxlqfqyslrmvxxuo' #'kazna171717'
 }
 
 addressee = {
