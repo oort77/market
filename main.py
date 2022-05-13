@@ -303,8 +303,8 @@ def send_email(sender_mail, sender_pass, switch):
             server.login(sender_email, password)
             server.sendmail(sender_email, recipients, text)
     except:
-        #print('Something went wrong...')
-        pass
+        print("Something went wrong - can't send email...")
+        # pass
 
 
 def main():
