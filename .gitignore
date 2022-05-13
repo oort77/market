@@ -1,3 +1,4 @@
 *._.DS*
 market_close.txt
 market_close.xlsx
+__pycache__
