@@ -10,7 +10,6 @@
 #  gm@og.ly
 
 import os
-import pickle
 
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -136,21 +135,26 @@ def get_market_close(tg_date):
 
     # Add bonds spreads
 
-    df_assets["bonds"].loc["2-10", "Close"] = (
-        df_assets["bonds"].loc["us10y", "Close"] -
-        df_assets["bonds"].loc["us2y", "Close"]
-    )
-    df_assets["bonds"].loc["5-20", "Close"] = (
-        df_assets["bonds"].loc["us20y", "Close"] -
-        df_assets["bonds"].loc["us5y", "Close"]
-    )
+    if "us10y" in ind.get("bonds") and "us2y" in ind.get("bonds"):
+        df_assets["bonds"].loc["10-2", "Close"] = (
+            df_assets["bonds"].loc["us10y", "Close"] -
+            df_assets["bonds"].loc["us2y", "Close"]
+        )
+        ind["bonds"].append("10-2")
+
+    if "us20y" in ind.get("bonds") and "us5y" in ind.get("bonds"):
+        df_assets["bonds"].loc["20-5", "Close"] = (
+            df_assets["bonds"].loc["us20y", "Close"] -
+            df_assets["bonds"].loc["us5y", "Close"]
+        )
+        ind["bonds"].append("20-5")
 
     # Print results to txt file
 
     with open("./data/market_close.txt", "w") as f:
         print(f"Date: {close_date}\n", file=f)
 
-        print(f"bonds\n", file=f)
+        # print(f"bonds\n", file=f)
 
         if df_assets["bonds"].shape[0] > 0:
             print(
@@ -164,7 +168,8 @@ def get_market_close(tg_date):
             )
 
         for a in ["indices", "commodities"]:
-            print(f"\n{a}\n", file=f)
+            
+            print(f"\n", file=f)
 
             if df_assets[a].shape[0] > 0:
                 print(
@@ -194,16 +199,13 @@ def get_market_close(tg_date):
 
     df_final.reset_index(inplace=True)
     df_final.rename(columns={"index": "Name"}, inplace=True)
-    b = "Bonds," * (len(ind["bonds"]) + 2)  # add 2 for 210 and 520 spreads
+    b = "Bonds," * len(ind["bonds"])   # add 2 for 210 and 520 spreads
     i = "Indices," * len(ind["indices"])
     c = "Commodities," * len(ind["commodities"])
     groups = list(filter(None, b.split(",") + i.split(",") + c.split(",")))
 
     df_final["Group"] = pd.Series(groups)
     df_final.set_index(["Group", "Name"], inplace=True)
-
-    with open("./data/df_assets.pickle", "wb") as f:
-        pickle.dump(df_assets, f)
 
     # Write results to xlsx file
 
@@ -334,4 +336,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
