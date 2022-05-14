@@ -29,8 +29,6 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 from email.header import Header
 
-# import credentials
-
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -237,7 +235,7 @@ def get_market_close(tg_date):
     # Send results to Telegram
 
     path = "./data/chats.txt"
-    token = credentials.t_bot_token
+    token = os.environ.get("t_bot_token")
     end_msg = "Tutto opossum - please check your mail"  # txt
     with open(path, "r") as chats:
         for chat in chats.readlines():
