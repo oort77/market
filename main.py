@@ -8,8 +8,9 @@
 #  Copyright 2022. All rights reserved.
 #
 #  gm@og.ly
-# %%
+
 import os
+import pickle
 
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -78,6 +79,13 @@ def send(update, context):
     else:
         update.message.reply_text(
             "Oops! Wrong date format - please use ddmmyy.")
+
+
+def txt(update, context):
+    doc_file = open('./data/market_close.txt', 'rb')
+    chat_id = update.message.chat_id
+    return context.bot.send_document(chat_id, doc_file)
+
 
 # ------------------------- Get_data part -------------------------------------
 
@@ -149,7 +157,7 @@ def get_market_close(tg_date):
                 tabulate(
                     pd.DataFrame(df_assets["bonds"]["Close"]),
                     headers=["Years/spreads", "Close"],
-                    tablefmt="grid",
+                    tablefmt="simple",
                     floatfmt=".2f",
                 ),
                 file=f,
@@ -164,7 +172,7 @@ def get_market_close(tg_date):
                         pd.DataFrame(df_assets[a]["Close"]),
                         headers=["Commodity    " if a ==
                                  "commodities" else "Index", "Close"],
-                        tablefmt="grid",
+                        tablefmt="simple",
                         floatfmt=".2f",
                     ),
                     file=f,
@@ -193,6 +201,9 @@ def get_market_close(tg_date):
 
     df_final["Group"] = pd.Series(groups)
     df_final.set_index(["Group", "Name"], inplace=True)
+
+    with open("./data/df_assets.pickle", "wb") as f:
+        pickle.dump(df_assets, f)
 
     # Write results to xlsx file
 
@@ -315,6 +326,7 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("send", send, pass_args=True))
+    dispatcher.add_handler(CommandHandler("txt", txt, pass_args=False))
 
     updater.start_polling(poll_interval=10.0)
     updater.idle()
@@ -323,4 +335,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-# %%
