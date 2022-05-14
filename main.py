@@ -9,6 +9,8 @@
 #
 #  gm@og.ly
 # %%
+import os
+
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -27,10 +29,14 @@ from email.mime.text import MIMEText
 from email.utils import formataddr
 from email.header import Header
 
-import credentials
+# import credentials
 
+import warnings
+warnings.filterwarnings("ignore")
 
 # Helper function
+
+
 def check_date(date):
 
     return (
@@ -96,7 +102,7 @@ def get_market_close(tg_date):
     }
     assets = {}
     ind = {}
-    df_assets = {}  # pd.DataFrame()
+    df_assets = {}
     for asset_class in tickers.keys():
         ind[asset_class] = []
         df_assets[asset_class] = pd.DataFrame()
@@ -133,12 +139,6 @@ def get_market_close(tg_date):
         df_assets["bonds"].loc["us5y", "Close"]
     )
 
-    # +++++++++++ Test +++++++++++
-    for a in tickers.keys():
-        print(df_assets[a])
-    
-    print("Bonds df shape: ", df_assets["bonds"].shape)
-    
     # Print results to txt file
 
     with open("./data/market_close.txt", "w") as f:
@@ -146,7 +146,7 @@ def get_market_close(tg_date):
 
         print(f"bonds\n", file=f)
 
-        if df_assets["bonds"].shape[0]>0:
+        if df_assets["bonds"].shape[0] > 0:
             print(
                 tabulate(
                     pd.DataFrame(df_assets["bonds"]["Close"]),
@@ -156,20 +156,16 @@ def get_market_close(tg_date):
                 ),
                 file=f,
             )
-            
-        # +++++++++++ Test +++++++++++
-        print("Indices df shape: ", df_assets["indices"].shape)
-        print("Commodities df shape: ", df_assets["commodities"].shape)
 
         for a in ["indices", "commodities"]:
             print(f"\n{a}\n", file=f)
 
-            if df_assets[a].shape[0]>0:
+            if df_assets[a].shape[0] > 0:
                 print(
                     tabulate(
                         pd.DataFrame(df_assets[a]["Close"]),
                         headers=["Commodity    " if a ==
-                                "commodities" else "Index", "Close"],
+                                 "commodities" else "Index", "Close"],
                         tablefmt="grid",
                         floatfmt=".2f",
                     ),
@@ -178,20 +174,16 @@ def get_market_close(tg_date):
 
     # Make summary dataframe for xlsx export
 
-    non_empty =[]
+    non_empty = []
     # for a in tickers.keys():
-    [non_empty.append(df_assets[ac]) for ac in tickers.keys() if (not df_assets[ac].empty)]
+    [non_empty.append(df_assets[ac]['Close'])
+     for ac in tickers.keys() if (not df_assets[ac].empty)]
     df_final = pd.DataFrame(
         pd.concat(
-        #     [
-        #         df_assets["bonds"]["Close"],
-        #         df_assets["indices"]["Close"],
-        #         df_assets["commodities"]["Close"],
-        #     ],
             non_empty,
             axis=0,
             sort=False,
-            )
+        )
     )
 
     df_final.reset_index(inplace=True)
@@ -204,29 +196,21 @@ def get_market_close(tg_date):
     df_final["Group"] = pd.Series(groups)
     df_final.set_index(["Group", "Name"], inplace=True)
 
-
-    # +++++++++++ Test +++++++++++
-    print(df_final)
-
     # Write results to xlsx file
 
     # Create a Pandas Excel writer using XlsxWriter as the engine
-
     writer = pd.ExcelWriter(
         "./data/market_close.xlsx", engine="xlsxwriter"
     )
 
     # Convert the dataframe to an XlsxWriter Excel object
-
     df_final.to_excel(writer, sheet_name=f"{tg_date}")
 
     # Get the xlsxwriter workbook and worksheet objects
-
     workbook = writer.book
     worksheet = writer.sheets[f"{tg_date}"]
 
     # Set format of data
-
     format1 = workbook.add_format({"align": "right"})
     format2 = workbook.add_format({"num_format": "#,##0.00", "border": 1})
 
@@ -236,19 +220,14 @@ def get_market_close(tg_date):
                          "hidden": True})  # Hide empty columns
 
     # Close the Pandas Excel writer and output the Excel file
-
     writer.save()
 
     # Send mail
 
-    # Set operation mode: production ('p') or test ('t')
+    send_email(os.environ.get("sender_mail"),
+               os.environ.get("password"), switch=os.environ.get("switch"))
 
-    switch = "t"
-
-    send_email(credentials.login["email"],
-               credentials.login["password"], switch)
-
-    # Telegram bot part
+# ---------------------------- Telegram bot part ------------------------------
 
     # Read results from txt file
 
@@ -278,8 +257,11 @@ def send_email(sender_mail, sender_pass, switch):
     from_sender = formataddr(
         (str(Header('Меркурий Гусевич О.', 'utf-8')), sender_email))
     # Production/test switch
-    receiver_email = credentials.addressee[switch][0]
-    cc_email = credentials.addressee[switch][1]
+    if switch == "prod":
+        receiver_email = os.environ.get("addressee_prod")
+    else:
+        receiver_email = os.environ.get("addressee_test")
+    cc_email = os.environ.get("cc_mail")
 
     password = sender_pass
 
@@ -318,17 +300,17 @@ def send_email(sender_mail, sender_pass, switch):
 
     # Log in to server using secure context and send email
     try:
-        context = ssl.create_default_context()
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+        with smtplib.SMTP_SSL("smtp.yandex.ru", 465) as server:
+
             server.login(sender_email, password)
             server.sendmail(sender_email, recipients, text)
+
     except:
-        print("Something went wrong - can't send email...")
-        # pass
+        print('Something went wrong...')
 
 
 def main():
-    token = credentials.t_bot_token
+    token = os.environ.get("t_bot_token")
     updater = telegram.ext.Updater(token)
     dispatcher = updater.dispatcher
 
@@ -336,10 +318,11 @@ def main():
     dispatcher.add_handler(CommandHandler("help", help))
     dispatcher.add_handler(CommandHandler("send", send, pass_args=True))
 
-    # print("Ready")
     updater.start_polling(poll_interval=10.0)
     updater.idle()
 
 
 if __name__ == "__main__":
     main()
+
+# %%
