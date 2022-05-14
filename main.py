@@ -236,7 +236,7 @@ def get_market_close(tg_date):
     # Send mail
 
     send_email(os.environ.get("sender_mail"),
-               os.environ.get("password"), switch=os.environ.get("switch"))
+               os.environ.get("password"), switch=os.environ.get("switch"), date=close_date)
 
 # ---------------------------- Telegram bot part ------------------------------
 
@@ -259,10 +259,10 @@ def get_market_close(tg_date):
 # --------------------------------- Email part --------------------------------
 
 
-def send_email(sender_mail, sender_pass, switch):
+def send_email(sender_mail, sender_pass, switch, date):
 
     # Create email
-    subject = "market close"
+    subject = f"market close on {date}"
     body = "--\nС уважением,\n\nМ.Г."
     sender_email = sender_mail
     from_sender = formataddr(
