@@ -10,6 +10,8 @@
 #  gm@og.ly
 
 import os
+import os.path
+from os import path
 
 import telegram
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -81,9 +83,11 @@ def send(update, context):
 
 
 def txt(update, context):
-    doc_file = open('./data/market_close.txt', 'rb')
-    chat_id = update.message.chat_id
-    return context.bot.send_document(chat_id, doc_file)
+    data_path= "./data/market_close.txt"
+    if path.exists(data_path):
+        with open(data_path, "rb") as data_file:
+            chat_id = update.message.chat_id
+            return context.bot.send_document(chat_id, data_file)
 
 
 # ------------------------- Get_data part -------------------------------------
