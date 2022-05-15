@@ -11,7 +11,7 @@
 
 import os
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import CommandHandler
 
 from datetime import datetime, timedelta
 import investpy as inv
@@ -20,7 +20,6 @@ import requests
 from tabulate import tabulate
 
 import smtplib
-import ssl
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -80,14 +79,14 @@ def send(update, context):
 
 
 def txt(update, context):
-    data_path= "./data/market_close.txt"
+    data_path = "./data/market_close.txt"
     try:
         with open(data_path, "rb") as data_file:
             chat_id = update.message.chat_id
             return context.bot.send_document(chat_id, data_file)
     except:
         pass
-    
+
 # ------------------------- Get_data part -------------------------------------
 
 
@@ -170,8 +169,7 @@ def get_market_close(tg_date):
             )
 
         for a in ["indices", "commodities"]:
-            
-            print(f"\n", file=f)
+            print("\n", file=f)
 
             if df_assets[a].shape[0] > 0:
                 print(
@@ -254,7 +252,7 @@ def get_market_close(tg_date):
     end_msg = "Tutto opossum - please check your mail"  # txt
     with open(path, "r") as chats:
         for chat in chats.readlines():
-            results = requests.get(
+            requests.get(
                 f"https://api.telegram.org/bot{token}/sendMessage?chat_id={chat}&text={end_msg}"
             )
 
