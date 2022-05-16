@@ -85,7 +85,7 @@ def txt(update, context):
             chat_id = update.message.chat_id
             return context.bot.send_document(chat_id, data_file)
     except:
-        pass
+        print("Data had gone already")
 
 # ------------------------- Get_data part -------------------------------------
 
