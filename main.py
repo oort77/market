@@ -102,8 +102,10 @@ def get_market_close(tg_date):
     # Get data
 
     tickers = {
-        "bonds": ["us1y", "us2y", "us3y", "us5y", "us7y", "us10y", "us20y", "us30y"],
-        "indices": ["S&P 500", "Nasdaq", "Shanghai Comp. ", "MOEX Russia", "DXY"],
+        "bonds": ["us1y", "us2y", "us3y", "us5y", "us7y", "us10y",
+                  "us20y", "us30y"],
+        "indices": ["S&P 500", "Nasdaq", "Shanghai Comp. ",
+                    "MOEX Russia", "DXY"],
         "commodities": ["Gold", "Brent"],
     }
     assets = {}
@@ -121,7 +123,8 @@ def get_market_close(tg_date):
             try:
                 data = (
                     assets[ticker]
-                    .retrieve_historical_data(from_date=prev_date, to_date=close_date)
+                    .retrieve_historical_data(from_date=prev_date,
+                                              to_date=close_date)
                     .iloc[-1:]
                 )
                 # print(ticker, data)
@@ -223,7 +226,8 @@ def get_market_close(tg_date):
 
     # Set format of data
     format1 = workbook.add_format({"align": "right"})
-    format2 = workbook.add_format({"num_format": "#,##0.00", "border": 1})
+    format2 = workbook.add_format({"num_format": "#,##0.00",
+                                   "border": 1})
 
     worksheet.set_column(0, 1, 18, format1)
     worksheet.set_column(2, 2, 10, format2)  # Width of cell 10
@@ -236,7 +240,9 @@ def get_market_close(tg_date):
     # Send mail
 
     send_email(os.environ.get("sender_mail"),
-               os.environ.get("password"), switch=os.environ.get("switch"), date=close_date)
+               os.environ.get("password"),
+               switch=os.environ.get("switch"),
+               date=close_date)
 
 # ---------------------------- Telegram bot part ------------------------------
 
